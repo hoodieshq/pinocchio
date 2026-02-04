@@ -4,7 +4,10 @@ use core::slice::from_raw_parts;
 use solana_account_view::AccountView;
 use solana_address::Address;
 use solana_instruction_view::cpi::Signer;
-use solana_instruction_view::{cpi::{invoke, invoke_signed}, InstructionAccount, InstructionView};
+use solana_instruction_view::{
+    cpi::{invoke, invoke_signed},
+    InstructionAccount, InstructionView,
+};
 use solana_program_error::ProgramResult;
 
 /// Initialize the pausable extension for a mint.
