@@ -4,7 +4,7 @@ use core::slice::from_raw_parts;
 use solana_account_view::AccountView;
 use solana_address::Address;
 use solana_instruction_view::cpi::Signer;
-use solana_instruction_view::{cpi::invoke_signed, InstructionAccount, InstructionView};
+use solana_instruction_view::{cpi::{invoke, invoke_signed}, InstructionAccount, InstructionView};
 use solana_program_error::ProgramResult;
 
 /// Initialize the pausable extension for a mint.
@@ -25,11 +25,6 @@ impl InitializePausable<'_, '_> {
 
     #[inline(always)]
     pub fn invoke(&self) -> ProgramResult {
-        self.invoke_signed(&[])
-    }
-
-    #[inline(always)]
-    pub fn invoke_signed(&self, signers: &[Signer]) -> ProgramResult {
         let instruction_accounts = [InstructionAccount::writable(self.mint.address())];
 
         // Instruction data layout:
@@ -52,9 +47,7 @@ impl InitializePausable<'_, '_> {
             data: unsafe { from_raw_parts(instruction_data.as_ptr() as _, 34) },
         };
 
-        invoke_signed(&instruction, &[self.mint], signers)?;
-
-        Ok(())
+        invoke(&instruction, &[self.mint])
     }
 }
 
