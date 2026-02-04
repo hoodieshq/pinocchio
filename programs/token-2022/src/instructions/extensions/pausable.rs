@@ -48,7 +48,7 @@ impl InitializePausable<'_, '_> {
         write_bytes(&mut instruction_data[2..34], &self.authority.to_bytes());
 
         let instruction = InstructionView {
-            program_id: &self.token_program,
+            program_id: self.token_program,
             accounts: &instruction_accounts,
             data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, 34) },
         };
@@ -94,7 +94,7 @@ impl Pause<'_, '_> {
         let instruction_data = [ExtensionDiscriminator::Pausable as u8, Self::DISCRIMINATOR];
 
         let instruction = InstructionView {
-            program_id: &self.token_program,
+            program_id: self.token_program,
             accounts: &instruction_accounts,
             data: &instruction_data,
         };
@@ -140,7 +140,7 @@ impl Resume<'_, '_> {
         let instruction_data = [ExtensionDiscriminator::Pausable as u8, Self::DISCRIMINATOR];
 
         let instruction = InstructionView {
-            program_id: &self.token_program,
+            program_id: self.token_program,
             accounts: &instruction_accounts,
             data: &instruction_data,
         };
