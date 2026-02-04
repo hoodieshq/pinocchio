@@ -1,7 +1,6 @@
-//! Pausable extension
-
 use crate::instructions::extensions::ExtensionDiscriminator;
 use crate::{write_bytes, UNINIT_BYTE};
+use core::slice::from_raw_parts;
 use solana_account_view::AccountView;
 use solana_address::Address;
 use solana_instruction_view::cpi::Signer;
@@ -50,7 +49,7 @@ impl InitializePausable<'_, '_> {
         let instruction = InstructionView {
             program_id: self.token_program,
             accounts: &instruction_accounts,
-            data: unsafe { core::slice::from_raw_parts(instruction_data.as_ptr() as _, 34) },
+            data: unsafe { from_raw_parts(instruction_data.as_ptr() as _, 34) },
         };
 
         invoke_signed(&instruction, &[self.mint], signers)?;
