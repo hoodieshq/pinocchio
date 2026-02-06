@@ -1,7 +1,7 @@
 use crate::instructions::extensions::ExtensionDiscriminator;
 use crate::instructions::MAX_MULTISIG_SIGNERS;
 use core::mem::MaybeUninit;
-use core::slice::{from_raw_parts, from_raw_parts_mut};
+use core::slice;
 use solana_account_view::AccountView;
 use solana_address::Address;
 use solana_instruction_view::cpi::Signer;
@@ -92,25 +92,36 @@ impl Resume<'_, '_, '_> {
 
         let instruction = InstructionView {
             program_id: token_program,
-            accounts: unsafe { from_raw_parts(instruction_accounts.as_ptr() as _, num_accounts) },
+            accounts: unsafe {
+                slice::from_raw_parts(instruction_accounts.as_ptr() as _, num_accounts)
+            },
             data: &instruction_data,
         };
 
-        // Gather all accounts for invoke_signed_with_bounds
-        let mut all_accounts = [None; 2 + MAX_MULTISIG_SIGNERS];
-        all_accounts[0] = Some(mint);
-        all_accounts[1] = Some(pause_authority);
+        // Account view array
+        const UNINIT_ACCOUNT_VIEWS: MaybeUninit<&AccountView> = MaybeUninit::uninit();
+        let mut account_views = [UNINIT_ACCOUNT_VIEWS; 2 + MAX_MULTISIG_SIGNERS];
 
-        for (i, signer) in multisig_accounts.iter().enumerate() {
-            all_accounts[2 + i] = Some(*signer);
+        unsafe {
+            // SAFETY:
+            // - `account_views` is sized to 2 + MAX_MULTISIG_SIGNERS
+            // - Index 0 is always present
+            account_views.get_unchecked_mut(0).write(mint);
+            // - Index 1 is always present
+            account_views.get_unchecked_mut(1).write(pause_authority);
+        }
+
+        // Fill signer accounts
+        for (account_view, signer) in account_views[2..].iter_mut().zip(multisig_accounts.iter()) {
+            account_view.write(signer);
         }
 
         invoke_signed_with_bounds::<{ 2 + MAX_MULTISIG_SIGNERS }>(
             &instruction,
-            unsafe { from_raw_parts_mut(all_accounts.as_mut_ptr() as _, num_accounts) },
+            unsafe {
+                slice::from_raw_parts(account_views.as_ptr() as *const &AccountView, num_accounts)
+            },
             signers,
-        )?;
-
-        Ok(())
+        )
     }
 }
