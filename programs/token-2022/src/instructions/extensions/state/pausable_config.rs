@@ -14,6 +14,7 @@ pub struct PausableConfig {
     authority: Address,
 
     /// Whether minting / transferring / burning tokens is paused.
+    /// Value is 1 when paused, 0 when active.
     paused: u8,
 }
 
@@ -33,7 +34,7 @@ impl PausableConfig {
             return Err(ProgramError::InvalidAccountData);
         }
         if !account_view.owned_by(&ID) {
-            return Err(ProgramError::InvalidAccountData);
+            return Err(ProgramError::InvalidAccountOwner);
         }
         Ok(Ref::map(account_view.try_borrow()?, |data| unsafe {
             Self::from_bytes_unchecked(data)
@@ -57,7 +58,7 @@ impl PausableConfig {
             return Err(ProgramError::InvalidAccountData);
         }
         if account_view.owner() != &ID {
-            return Err(ProgramError::InvalidAccountData);
+            return Err(ProgramError::InvalidAccountOwner);
         }
         Ok(Self::from_bytes_unchecked(account_view.borrow_unchecked()))
     }
@@ -76,6 +77,7 @@ impl PausableConfig {
     }
 
     /// Return the authority that can pause or resume the mint.
+    #[inline(always)]
     pub fn authority(&self) -> &Address {
         &self.authority
     }

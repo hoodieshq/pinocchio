@@ -1,5 +1,6 @@
 pub mod memo_transfer;
 pub mod pausable;
+pub mod state;
 
 #[repr(u8)]
 #[non_exhaustive]

@@ -38,7 +38,7 @@ impl InitializePausable<'_, '_> {
             &[ExtensionDiscriminator::Pausable as u8],
         );
         write_bytes(&mut instruction_data[1..2], &[Self::DISCRIMINATOR]);
-        write_bytes(&mut instruction_data[2..34], &self.authority.to_bytes());
+        write_bytes(&mut instruction_data[2..34], self.authority.as_array());
 
         let instruction = InstructionView {
             program_id: self.token_program,
